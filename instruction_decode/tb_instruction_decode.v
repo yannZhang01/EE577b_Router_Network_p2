@@ -48,15 +48,9 @@ module tb_instruction_decode;
     localparam [5:0] ALU_OP_VSQEU  = 6'd16;
     localparam [5:0] ALU_OP_VSQOU  = 6'd17;
     localparam [5:0] ALU_OP_VSQRT  = 6'd18;
-    localparam [5:0] ALU_OP_VLD    = 6'd19;
-    localparam [5:0] ALU_OP_VSD    = 6'd20;
-    localparam [5:0] ALU_OP_VBEZ   = 6'd21;
-    localparam [5:0] ALU_OP_VBNEZ  = 6'd22;
-    localparam [5:0] ALU_OP_VNOP   = 6'd23;
 
-    localparam [1:0] WB_SEL_NONE      = 2'b00;
-    localparam [1:0] WB_SEL_EX_RESULT = 2'b01;
-    localparam [1:0] WB_SEL_MEM_DATA  = 2'b10;
+    localparam       WB_SEL_EX_RESULT = 1'b0;
+    localparam       WB_SEL_MEM_DATA  = 1'b1;
 
     reg  [31:0] instruction;
 
@@ -79,7 +73,7 @@ module tb_instruction_decode;
     wire        use_rb;
     wire        use_rd_as_src;
 
-    wire [1:0]  wb_sel;
+    wire        wb_sel;
 
     wire        is_nop;
     wire        illegal_insn;
@@ -152,7 +146,7 @@ module tb_instruction_decode;
         input        exp_use_ra;
         input        exp_use_rb;
         input        exp_use_rd_as_src;
-        input [1:0]  exp_wb_sel;
+        input        exp_wb_sel;
         input        exp_is_nop;
         input        exp_illegal_insn;
         begin
@@ -160,45 +154,47 @@ module tb_instruction_decode;
             #1;
             total_cases = total_cases + 1;
 
-            if ((alu_op        !== exp_alu_op)          ||
-                (rd_idx        !== instr[25:21])        ||
-                (ra_idx        !== instr[20:16])        ||
-                (rb_idx        !== instr[15:11])        ||
-                (imm16         !== instr[15:0])         ||
-                (ww            !== exp_ww)              ||
-                (reg_write_en  !== exp_reg_write_en)    ||
-                (mem_read_en   !== exp_mem_read_en)     ||
-                (mem_write_en  !== exp_mem_write_en)    ||
-                (branch_en     !== exp_branch_en)       ||
-                (branch_eqz    !== exp_branch_eqz)      ||
-                (branch_nez    !== exp_branch_nez)      ||
-                (use_ra        !== exp_use_ra)          ||
-                (use_rb        !== exp_use_rb)          ||
-                (use_rd_as_src !== exp_use_rd_as_src)   ||
-                (wb_sel        !== exp_wb_sel)          ||
-                (is_nop        !== exp_is_nop)          ||
+            if ((alu_op        !== exp_alu_op)           ||
+                (rd_idx        !== instr[25:21])         ||
+                (ra_idx        !== instr[20:16])         ||
+                (rb_idx        !== instr[15:11])         ||
+                (imm16         !== instr[15:0])          ||
+                (ww            !== exp_ww)               ||
+                (reg_write_en  !== exp_reg_write_en)     ||
+                (mem_read_en   !== exp_mem_read_en)      ||
+                (mem_write_en  !== exp_mem_write_en)     ||
+                (branch_en     !== exp_branch_en)        ||
+                (branch_eqz    !== exp_branch_eqz)       ||
+                (branch_nez    !== exp_branch_nez)       ||
+                (use_ra        !== exp_use_ra)           ||
+                (use_rb        !== exp_use_rb)           ||
+                (use_rd_as_src !== exp_use_rd_as_src)    ||
+                ((exp_reg_write_en == 1'b1) && (wb_sel !== exp_wb_sel)) ||
+                (is_nop        !== exp_is_nop)           ||
                 (illegal_insn  !== exp_illegal_insn)) begin
                 fail_cases = fail_cases + 1;
                 $display("FAIL case %0d", total_cases);
-                $display("  instr        = %h", instr);
-                $display("  alu_op       = %0d expected %0d", alu_op, exp_alu_op);
-                $display("  rd_idx       = %0d expected %0d", rd_idx, instr[25:21]);
-                $display("  ra_idx       = %0d expected %0d", ra_idx, instr[20:16]);
-                $display("  rb_idx       = %0d expected %0d", rb_idx, instr[15:11]);
-                $display("  imm16        = %h expected %h", imm16, instr[15:0]);
-                $display("  ww           = %b expected %b", ww, exp_ww);
-                $display("  reg_write_en = %b expected %b", reg_write_en, exp_reg_write_en);
-                $display("  mem_read_en  = %b expected %b", mem_read_en, exp_mem_read_en);
-                $display("  mem_write_en = %b expected %b", mem_write_en, exp_mem_write_en);
-                $display("  branch_en    = %b expected %b", branch_en, exp_branch_en);
-                $display("  branch_eqz   = %b expected %b", branch_eqz, exp_branch_eqz);
-                $display("  branch_nez   = %b expected %b", branch_nez, exp_branch_nez);
-                $display("  use_ra       = %b expected %b", use_ra, exp_use_ra);
-                $display("  use_rb       = %b expected %b", use_rb, exp_use_rb);
-                $display("  use_rd_as_src= %b expected %b", use_rd_as_src, exp_use_rd_as_src);
-                $display("  wb_sel       = %b expected %b", wb_sel, exp_wb_sel);
-                $display("  is_nop       = %b expected %b", is_nop, exp_is_nop);
-                $display("  illegal_insn = %b expected %b", illegal_insn, exp_illegal_insn);
+                $display("  instr         = %h", instr);
+                $display("  alu_op        = %0d expected %0d", alu_op, exp_alu_op);
+                $display("  rd_idx        = %0d expected %0d", rd_idx, instr[25:21]);
+                $display("  ra_idx        = %0d expected %0d", ra_idx, instr[20:16]);
+                $display("  rb_idx        = %0d expected %0d", rb_idx, instr[15:11]);
+                $display("  imm16         = %h expected %h", imm16, instr[15:0]);
+                $display("  ww            = %b expected %b", ww, exp_ww);
+                $display("  reg_write_en  = %b expected %b", reg_write_en, exp_reg_write_en);
+                $display("  mem_read_en   = %b expected %b", mem_read_en, exp_mem_read_en);
+                $display("  mem_write_en  = %b expected %b", mem_write_en, exp_mem_write_en);
+                $display("  branch_en     = %b expected %b", branch_en, exp_branch_en);
+                $display("  branch_eqz    = %b expected %b", branch_eqz, exp_branch_eqz);
+                $display("  branch_nez    = %b expected %b", branch_nez, exp_branch_nez);
+                $display("  use_ra        = %b expected %b", use_ra, exp_use_ra);
+                $display("  use_rb        = %b expected %b", use_rb, exp_use_rb);
+                $display("  use_rd_as_src = %b expected %b", use_rd_as_src, exp_use_rd_as_src);
+                if (exp_reg_write_en == 1'b1) begin
+                    $display("  wb_sel        = %b expected %b", wb_sel, exp_wb_sel);
+                end
+                $display("  is_nop        = %b expected %b", is_nop, exp_is_nop);
+                $display("  illegal_insn  = %b expected %b", illegal_insn, exp_illegal_insn);
             end
             else begin
                 $display("PASS case %0d: instr=%h", total_cases, instr);
@@ -276,7 +272,7 @@ module tb_instruction_decode;
                 1'b0,
                 1'b0,
                 1'b0,
-                WB_SEL_NONE,
+                WB_SEL_EX_RESULT,
                 1'b0,
                 1'b1
             );
@@ -376,7 +372,7 @@ module tb_instruction_decode;
 
         check_instruction(
             make_imm(OPCODE_VLD, 5'd8, 16'h1234),
-            ALU_OP_VLD,
+            ALU_OP_NONE,
             2'b00,
             1'b1,
             1'b1,
@@ -394,7 +390,7 @@ module tb_instruction_decode;
 
         check_instruction(
             make_imm(OPCODE_VSD, 5'd9, 16'h2345),
-            ALU_OP_VSD,
+            ALU_OP_NONE,
             2'b00,
             1'b0,
             1'b0,
@@ -405,14 +401,14 @@ module tb_instruction_decode;
             1'b0,
             1'b0,
             1'b1,
-            WB_SEL_NONE,
+            WB_SEL_EX_RESULT,
             1'b0,
             1'b0
         );
 
         check_instruction(
             make_imm(OPCODE_VBEZ, 5'd10, 16'h3456),
-            ALU_OP_VBEZ,
+            ALU_OP_NONE,
             2'b00,
             1'b0,
             1'b0,
@@ -423,14 +419,14 @@ module tb_instruction_decode;
             1'b0,
             1'b0,
             1'b1,
-            WB_SEL_NONE,
+            WB_SEL_EX_RESULT,
             1'b0,
             1'b0
         );
 
         check_instruction(
             make_imm(OPCODE_VBNEZ, 5'd11, 16'h4567),
-            ALU_OP_VBNEZ,
+            ALU_OP_NONE,
             2'b00,
             1'b0,
             1'b0,
@@ -441,14 +437,14 @@ module tb_instruction_decode;
             1'b0,
             1'b0,
             1'b1,
-            WB_SEL_NONE,
+            WB_SEL_EX_RESULT,
             1'b0,
             1'b0
         );
 
         check_instruction(
             32'b111100_00000_00000_00000_00000_000000,
-            ALU_OP_VNOP,
+            ALU_OP_NONE,
             2'b00,
             1'b0,
             1'b0,
@@ -459,7 +455,7 @@ module tb_instruction_decode;
             1'b0,
             1'b0,
             1'b0,
-            WB_SEL_NONE,
+            WB_SEL_EX_RESULT,
             1'b1,
             1'b0
         );

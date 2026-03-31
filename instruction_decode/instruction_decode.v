@@ -23,7 +23,7 @@ module instruction_decode (
     output reg         use_rb,
     output reg         use_rd_as_src,
 
-    output reg  [1:0]  wb_sel,
+    output reg         wb_sel,
 
     output reg         is_nop,
     output reg         illegal_insn
@@ -74,15 +74,9 @@ module instruction_decode (
     localparam [5:0] ALU_OP_VSQEU  = 6'd16;
     localparam [5:0] ALU_OP_VSQOU  = 6'd17;
     localparam [5:0] ALU_OP_VSQRT  = 6'd18;
-    localparam [5:0] ALU_OP_VLD    = 6'd19;
-    localparam [5:0] ALU_OP_VSD    = 6'd20;
-    localparam [5:0] ALU_OP_VBEZ   = 6'd21;
-    localparam [5:0] ALU_OP_VBNEZ  = 6'd22;
-    localparam [5:0] ALU_OP_VNOP   = 6'd23;
 
-    localparam [1:0] WB_SEL_NONE     = 2'b00;
-    localparam [1:0] WB_SEL_EX_RESULT= 2'b01;
-    localparam [1:0] WB_SEL_MEM_DATA = 2'b10;
+    localparam       WB_SEL_EX_RESULT = 1'b0;
+    localparam       WB_SEL_MEM_DATA  = 1'b1;
 
     wire [5:0] opcode         = instruction[31:26];
     wire [5:0] func           = instruction[5:0];
@@ -110,7 +104,7 @@ module instruction_decode (
         use_rb        = 1'b0;
         use_rd_as_src = 1'b0;
 
-        wb_sel        = WB_SEL_NONE;
+        wb_sel        = WB_SEL_EX_RESULT;
 
         is_nop        = 1'b0;
         illegal_insn  = 1'b0;
@@ -336,7 +330,7 @@ module instruction_decode (
                     illegal_insn = 1'b1;
                 end
                 else begin
-                    alu_op       = ALU_OP_VLD;
+                    alu_op       = ALU_OP_NONE;
                     reg_write_en = 1'b1;
                     mem_read_en  = 1'b1;
                     wb_sel       = WB_SEL_MEM_DATA;
@@ -348,7 +342,7 @@ module instruction_decode (
                     illegal_insn = 1'b1;
                 end
                 else begin
-                    alu_op        = ALU_OP_VSD;
+                    alu_op        = ALU_OP_NONE;
                     mem_write_en  = 1'b1;
                     use_rd_as_src = 1'b1;
                 end
@@ -359,7 +353,7 @@ module instruction_decode (
                     illegal_insn = 1'b1;
                 end
                 else begin
-                    alu_op        = ALU_OP_VBEZ;
+                    alu_op        = ALU_OP_NONE;
                     branch_en     = 1'b1;
                     branch_eqz    = 1'b1;
                     use_rd_as_src = 1'b1;
@@ -371,7 +365,7 @@ module instruction_decode (
                     illegal_insn = 1'b1;
                 end
                 else begin
-                    alu_op        = ALU_OP_VBNEZ;
+                    alu_op        = ALU_OP_NONE;
                     branch_en     = 1'b1;
                     branch_nez    = 1'b1;
                     use_rd_as_src = 1'b1;
@@ -380,7 +374,7 @@ module instruction_decode (
 
             OPCODE_VNOP: begin
                 if (instruction == 32'b111100_00000_00000_00000_00000_000000) begin
-                    alu_op = ALU_OP_VNOP;
+                    alu_op = ALU_OP_NONE;
                     is_nop = 1'b1;
                 end
                 else begin
