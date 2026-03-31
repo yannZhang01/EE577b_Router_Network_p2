@@ -144,6 +144,9 @@ module cardinal_cpu (
     assign id_store_data  = id_use_rd_as_src ? id_regfile_rdata2 : 64'h0000_0000_0000_0000;
     assign id_branch_data = id_use_rd_as_src ? id_regfile_rdata2 : 64'h0000_0000_0000_0000;
 
+    reg        idexmem_valid;
+    reg        idexmem_reg_write_en;
+    reg [4:0]  idexmem_rd_idx;
     // Simple RAW hazard detection against the single in-flight EX/MEM writeback destination
     assign id_hazard_stall = ifid_valid && idexmem_valid && idexmem_reg_write_en && (idexmem_rd_idx != 5'd0) && (
                              (id_use_ra        && (id_ra_idx == idexmem_rd_idx)) ||
@@ -200,11 +203,8 @@ module cardinal_cpu (
     // - Carry execution and write-back control into EX-MEM stage
     // - Insert bubble when ID cannot issue
     // ============================================================
-    reg        idexmem_valid;
-    reg [4:0]  idexmem_rd_idx;
     reg [5:0]  idexmem_alu_op;
     reg [1:0]  idexmem_ww;
-    reg        idexmem_reg_write_en;
     reg        idexmem_wb_sel;
     reg [63:0] idexmem_operand_a;
     reg [63:0] idexmem_operand_b;

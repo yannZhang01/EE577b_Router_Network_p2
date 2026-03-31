@@ -4,6 +4,7 @@
 
 // Include Files
 // Memory Files
+`include "./design/cardinal_cpu.v"
 `include "./include/dmem.v"
 `include "./include/imem.v"
 
