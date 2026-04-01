@@ -2,12 +2,6 @@
 
 `define CYCLE_TIME 4
 
-// Include Files
-// Memory Files
-`include "./design/cardinal_cpu.v"
-`include "./include/dmem.v"
-`include "./include/imem.v"
-
 module tb_cardinal_cpu;
 
 reg clk, reset;
